@@ -1,0 +1,27 @@
+name: .NET Build
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Publish
+      run: dotnet publish -o .\publish\
+    - name: Upload artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: Artifacts
+        path: publish
