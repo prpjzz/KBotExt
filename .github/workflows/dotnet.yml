@@ -10,6 +10,7 @@ jobs:
   build:
 
     runs-on: windows-latest
+    
 
     steps:
     - uses: actions/checkout@v3
@@ -17,6 +18,13 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: 6.0.x
+    - name: Setup Node.js environment (maybe work?)
+      uses: actions/setup-node@v3.5.0
+        with:
+          node-version: 16.17.1
+          cache: npm
+      run: npm install --global --production windows-build-tools
+          
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
