@@ -5,7 +5,7 @@
 #include "HTTP.h"
 #include "Utils.h"
 #include "Auth.h"
-#include "Settings.h"
+#include "Config.h"
 
 class InfoTab
 {
@@ -145,7 +145,7 @@ public:
 
 			if (ImGui::Button("Copy to clipboard##infoTab"))
 			{
-				utils->CopyToClipboard(sResultJson);
+				Utils::CopyToClipboard(sResultJson);
 			}
 
 			ImGui::EndTabItem();

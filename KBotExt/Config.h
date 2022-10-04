@@ -7,13 +7,10 @@
 
 #include "Includes.h"
 
-#pragma warning (disable: 4996)
-
 struct Settings
 {
-	Settings()
-	{};
-	std::string settingsFile = "config.JSON";
+	Settings() {};
+	const std::string settingsFile = "config.JSON";
 
 	bool autoRename = false;
 	std::string leaguePath = "C:/Riot Games/League of Legends/";
@@ -71,7 +68,7 @@ struct Settings
 };
 extern Settings S;
 
-class CSettings
+class Config
 {
 public:
 
@@ -85,14 +82,15 @@ public:
 			file.close();
 		}
 
-		Json::Reader reader;
+		Json::CharReaderBuilder builder;
 		Json::Value root;
+		JSONCPP_STRING err;
 
 		std::ifstream iFile(S.settingsFile);
 
 		if (iFile.good())
 		{
-			if (reader.parse(iFile, root, false))
+			if (parseFromStream(builder, iFile, &root, &err))
 			{
 				root["autoRename"] = S.autoRename;
 				root["leaguePath"] = S.leaguePath;
@@ -129,7 +127,7 @@ public:
 
 					// clear so we dont append same fonts again
 					fontsArray.clear();
-					for (std::string font : S.vFonts)
+					for (const std::string& font : S.vFonts)
 						fontsArray.append(font);
 					root["fonts"] = fontsArray;
 				}
@@ -150,19 +148,11 @@ public:
 		std::fstream file(S.settingsFile, std::ios_base::in);
 		if (file.good())
 		{
-			std::string config;
-			std::string temp;
-			while (std::getline(file, temp))
-			{
-				config += temp + "\n";
-			}
-
 			Json::Value root;
 			Json::CharReaderBuilder builder;
-			const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
 			JSONCPP_STRING err;
 
-			if (reader->parse(config.c_str(), config.c_str() + static_cast<int>(config.length()), &root, &err))
+			if (parseFromStream(builder, file, &root, &err))
 			{
 				if (auto t = root["autoRename"]; !t.empty()) S.autoRename = t.asBool();
 				if (auto t = root["leaguePath"]; !t.empty()) S.leaguePath = t.asString();

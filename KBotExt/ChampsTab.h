@@ -74,7 +74,10 @@ public:
 								champ.owned = ownershipObj["owned"].asInt();
 								if (champ.owned)
 									iChampsOwned++;
-								champ.purchased = champObj["purchased"].asString();
+								if (champ.freeToPlay && !champ.owned)
+									champ.purchased = "0";
+								else
+									champ.purchased = champObj["purchased"].asString();
 								champ.rankedPlayEnabled = champObj["rankedPlayEnabled"].asBool();
 								//auto rolesObj = champObj.GetObject("roles"); //todo
 								champ.squarePortraitPath = champObj["squarePortraitPath"].asString();
@@ -119,11 +122,11 @@ public:
 
 				champsAll.clear();
 
-				for (auto minimal : champsMinimal)
+				for (const auto& minimal : champsMinimal)
 				{
 					ChampAll champ;
 					champ.min = minimal;
-					for (auto mastery : champsMastery)
+					for (const auto& mastery : champsMastery)
 					{
 						if (minimal.id == mastery.championId)
 						{
@@ -169,7 +172,7 @@ public:
 
 			ImGui::Separator();
 			ImGui::Text("Champions owned: %d", iChampsOwned);
-			for (auto champ : champsAll)
+			for (const auto& champ : champsAll)
 			{
 				if (!champ.min.owned)
 					continue;

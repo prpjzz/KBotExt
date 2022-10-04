@@ -7,11 +7,9 @@
 #include "DirectX.h"
 #include "Auth.h"
 #include "Utils.h"
-#include "Settings.h"
+#include "Config.h"
 
 Settings S;
-
-#pragma warning(disable : 4996)
 
 Direct3D9Render Direct3D9;
 
@@ -28,17 +26,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	szArgList = CommandLineToArgvW(GetCommandLineW(), &argCount);
 	if (argCount > 1)
 	{
-		std::string applicationName = utils->WstringToString(szArgList[1]);
+		std::string applicationName = Utils::WstringToString(szArgList[1]);
 		std::string cmdLine;
 		for (int i = 2; i < argCount; i++)
 		{
-			cmdLine += "\"" + utils->WstringToString(szArgList[i]) + "\" ";
+			cmdLine += "\"" + Utils::WstringToString(szArgList[i]) + "\" ";
 		}
 
 		cmdLine.replace(cmdLine.find("\"--no-proxy-server\""), strlen("\"--no-proxy-server\""), "");
 
 		AllocConsole();
-		freopen("CONOUT$", "w", stdout);
+		FILE* f;
+		freopen_s(&f, "CONOUT$", "w", stdout);
 
 		STARTUPINFOA startupInfo;
 		memset(&startupInfo, 0, sizeof(STARTUPINFOA));
@@ -57,6 +56,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			CloseHandle(processInformation.hProcess);
 			CloseHandle(processInformation.hThread);
+			fclose(f);
+			FreeConsole();
 			return 0;
 		}
 
@@ -67,6 +68,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		CloseHandle(processInformation.hProcess);
 		CloseHandle(processInformation.hThread);
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		fclose(f);
+		FreeConsole();
 	}
 	else
 	{
@@ -75,17 +78,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 		bool oldStreamProof = S.streamProof;
 
-		CSettings::Load();
+		Config::Load();
 
 		bool oldDebugger = S.debugger;
 
-		std::string sClassName = utils->RandomString(RandomInt(5, 10));
+		std::string sClassName = Utils::RandomString(RandomInt(5, 10));
 		LPCSTR lpszOverlayClassName = sClassName.c_str();
 		//Register window class information
 		WNDCLASSEXA wc = { sizeof(WNDCLASSEXA), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, sClassName.c_str(), NULL };
 
 		if (S.autoRename)
-			utils->RenameExe();
+			Utils::RenameExe();
 
 		::RegisterClassExA(&wc);
 
@@ -114,7 +117,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 #ifndef NDEBUG
 		AllocConsole();
-		freopen("CONOUT$", "w", stdout);
+		FILE* f;
+		freopen_s(&f, "CONOUT$", "w", stdout);
 #endif
 
 		if (auth->GetLeagueClientInfo())
@@ -247,12 +251,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 		}
 
-		CSettings::Save();
+		Config::Save();
 
 		// Cleanup
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
+
+#ifndef NDEBUG
+		fclose(f);
+		FreeConsole();
+#endif
 
 		//Exit
 		Direct3D9.Shutdown();
@@ -285,7 +294,7 @@ LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				S.Window.height = rect.bottom - rect.top;
 				S.Window.width = rect.right - rect.left;
-				CSettings::Save();
+				Config::Save();
 			}
 		}
 		return 0;

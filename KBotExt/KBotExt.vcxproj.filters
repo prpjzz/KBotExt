@@ -98,9 +98,6 @@
     <ClInclude Include="Auth.h">
       <Filter>Auth</Filter>
     </ClInclude>
-    <ClInclude Include="NtQueryInfoProc.h">
-      <Filter>Auth</Filter>
-    </ClInclude>
     <ClInclude Include="imgui\imconfig.h">
       <Filter>imgui</Filter>
     </ClInclude>
@@ -179,7 +176,7 @@
     <ClInclude Include="SettingsTab.h">
       <Filter>Tabs</Filter>
     </ClInclude>
-    <ClInclude Include="Settings.h">
+    <ClInclude Include="Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MiscTab.h">

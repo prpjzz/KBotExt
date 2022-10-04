@@ -6,7 +6,7 @@
 #include "Utils.h"
 #include "Auth.h"
 #include "Misc.h"
-#include "Settings.h"
+#include "Config.h"
 
 class SettingsTab
 {
@@ -26,7 +26,7 @@ public:
 				{
 					io.FontDefault = font;
 					S.selectedFont = n;
-					CSettings::Save();
+					Config::Save();
 				}
 				ImGui::PopID();
 			}
@@ -49,11 +49,11 @@ public:
 			{
 				once = false;
 				HKEY hkResult;
-				if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\LeagueClientUx.exe", 0, KEY_QUERY_VALUE, &hkResult) == ERROR_SUCCESS)
+				if (RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\LeagueClientUx.exe", 0, KEY_READ, &hkResult) == ERROR_SUCCESS)
 				{
 					char buffer[MAX_PATH];
-					DWORD dwLen = 0;
-					LSTATUS regQuery = RegGetValueA(hkResult, 0, "debugger", RRF_RT_REG_SZ, 0, (PVOID)&buffer, &dwLen);
+					DWORD dwLen = sizeof(buffer);
+					LSTATUS regQuery = RegQueryValueExA(hkResult, "debugger", 0, NULL, (LPBYTE)buffer, &dwLen);
 					if (regQuery == ERROR_SUCCESS)
 					{
 						S.currentDebugger = std::string(buffer, dwLen);
@@ -75,11 +75,11 @@ public:
 
 			ImGui::Checkbox("Auto-rename", &S.autoRename);
 			ImGui::SameLine();
-			Misc::HelpMarker("Automatically renames the program on launch");
+			ImGui::HelpMarker("Automatically renames the program on launch");
 
 			ImGui::Checkbox("Stream Proof", &S.streamProof);
 			ImGui::SameLine();
-			Misc::HelpMarker("Hides the program in recordings and screenshots");
+			ImGui::HelpMarker("Hides the program in recordings and screenshots");
 
 			ImGui::Checkbox("Register debugger IFEO", &S.debugger);
 			ImGui::SameLine();
@@ -109,7 +109,7 @@ public:
 
 			ImGui::Text("Font:");
 			ImGui::SameLine();
-			Misc::HelpMarker("This is the program's font, not League's");
+			ImGui::HelpMarker("This is the program's font, not League's");
 
 			ShowFontSelector("##fontSelector");
 
@@ -129,7 +129,7 @@ public:
 					{
 						S.vFonts.emplace_back(temp);
 						S.bAddFont = true;
-						CSettings::Save();
+						Config::Save();
 						result = temp + " font added, restart program to select it";
 					}
 					else
@@ -144,14 +144,14 @@ public:
 				S.Window.width = 700;
 				S.Window.height = 500;
 				S.Window.resize = true;
-				CSettings::Save();
+				Config::Save();
 			}
 			ImGui::SameLine();
 			ImGui::Text(std::format("{0}x{1}", S.Window.width, S.Window.height).c_str());
 
 			ImGui::Separator();
 			ImGui::Text("GitHub repository:");
-			Misc::TextURL("Click me!", "https://github.com/KebsCS/KBotExt");
+			ImGui::TextURL("Click me!", "https://github.com/KebsCS/KBotExt");
 
 			ImGui::TextWrapped(result.c_str());
 

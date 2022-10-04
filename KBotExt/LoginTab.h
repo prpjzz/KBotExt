@@ -6,7 +6,7 @@
 #include "Utils.h"
 #include "Auth.h"
 #include "Misc.h"
-#include "Settings.h"
+#include "Config.h"
 
 #pragma warning(disable : 4996)
 
@@ -113,13 +113,13 @@ public:
 
 			if (ImGui::BeginCombo("##language", selectedLang.first.c_str()))
 			{
-				for (auto lang : langs)
+				for (const auto& lang : langs)
 				{
 					if (ImGui::Selectable(lang.first.c_str(), lang.first == selectedLang.first))
 					{
 						selectedLang = { lang.first,lang.second };
 						S.loginTab.language = lang.second;
-						CSettings::Save();
+						Config::Save();
 
 						std::string localeArg = std::format("--locale={} ", selectedLang.second);
 						size_t localePos = sArgs.find("--locale=");
@@ -209,7 +209,7 @@ public:
 			}
 
 			ImGui::SameLine();
-			Misc::HelpMarker("This part is only, if you want to save your login and pass to config file and login with 1 click. You don't have to do that, you can just log in the usual way in client and launch the tool anytime you want");
+			ImGui::HelpMarker("This part is only, if you want to save your login and pass to config file and login with 1 click. You don't have to do that, you can just log in the usual way in client and launch the tool anytime you want");
 
 			ImGui::Separator();
 
