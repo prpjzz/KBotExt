@@ -81,6 +81,73 @@ public:
 
 			ImGui::Separator();
 
+			ImGui::Text("Roles:");
+			ImGui::SameLine();
+			ImGui::HelpMarker("Auto pick roles for Draft, Solo/Duo and Flex queues");
+
+			ImGui::Columns(3, 0, false);
+
+			std::vector<std::string>first_position = { "UNSELECTED", "TOP","JUNGLE","MIDDLE","BOTTOM","UTILITY","FILL" };
+			static int first_indexPosition = 0; // Here we store our selection data as an index.
+			if (first_indexPosition != S.gameTab.firstRole)
+			{
+				first_indexPosition = S.gameTab.firstRole;
+			}
+			const char* first_labelPosition = first_position[first_indexPosition].c_str();
+
+			if (ImGui::BeginCombo("##comboFirstPosition", first_labelPosition, 0))
+			{
+				for (int n = 0; n < first_position.size(); n++)
+				{
+					const bool is_selected = (S.gameTab.firstRole == n);
+					if (ImGui::Selectable(first_position[n].c_str(), is_selected))
+						S.gameTab.firstRole = n;
+
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("Primary");
+
+			ImGui::NextColumn();
+
+			std::vector<std::string>second_position = { "UNSELECTED", "TOP","JUNGLE","MIDDLE","BOTTOM","UTILITY","FILL" };
+			static int second_indexPosition = 0; // Here we store our selection data as an index.
+			if (second_indexPosition != S.gameTab.secondRole)
+			{
+				second_indexPosition = S.gameTab.secondRole;
+			}
+			const char* second_labelPosition = second_position[second_indexPosition].c_str();
+
+			if (ImGui::BeginCombo("##comboSecondPosition", second_labelPosition, 0))
+			{
+				for (int n = 0; n < second_position.size(); n++)
+				{
+					const bool is_selected = (S.gameTab.secondRole == n);
+					if (ImGui::Selectable(second_position[n].c_str(), is_selected))
+						S.gameTab.secondRole = n;
+
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			ImGui::SameLine();
+			ImGui::Text("Secondary");
+
+			ImGui::NextColumn();
+
+			if (ImGui::Button("Pick roles"))
+			{
+				result = http->Request("PUT", "https://127.0.0.1/lol-lobby/v1/lobby/members/localMember/position-preferences", "{\"firstPreference\":\"" + first_position[first_indexPosition] + "\",\"secondPreference\":\"" + second_position[second_indexPosition] + "\"}", auth->leagueHeader, "", "", auth->leaguePort);
+			}
+			ImGui::SameLine();
+			ImGui::HelpMarker("If you are already in a lobby you can use this button to pick the roles, or start a new lobby with the buttons above");
+
+			ImGui::Separator();
+
 			ImGui::Columns(4, 0, false);
 
 			if (ImGui::Button("Tutorial 1"))
@@ -207,7 +274,15 @@ public:
 					body = custom;
 					custom = "";
 				}
-				result = http->Request("POST", "https://127.0.0.1/lol-lobby/v2/lobby", body, auth->leagueHeader, "", "", auth->leaguePort);
+				if (gameID == DraftPick || gameID == SoloDuo || gameID == Flex)
+				{
+					result = http->Request("POST", "https://127.0.0.1/lol-lobby/v2/lobby", body, auth->leagueHeader, "", "", auth->leaguePort);
+					http->Request("PUT", "https://127.0.0.1/lol-lobby/v1/lobby/members/localMember/position-preferences", "{\"firstPreference\":\"" + first_position[first_indexPosition] + "\",\"secondPreference\":\"" + second_position[second_indexPosition] + "\"}", auth->leagueHeader, "", "", auth->leaguePort);
+				}
+				else
+				{
+					result = http->Request("POST", "https://127.0.0.1/lol-lobby/v2/lobby", body, auth->leagueHeader, "", "", auth->leaguePort);
+				}
 
 				/*	{
 						for (int i = 0; i < 10001; i++)
@@ -335,6 +410,16 @@ public:
 
 			ImGui::Columns(1);
 
+			ImGui::Columns(2, 0, false);
+
+			ImGui::SliderInt("Time(s)##sliderInstantMessageTimes", &S.gameTab.instantMessageTimes, 1, 10, "%d");
+
+			ImGui::NextColumn();
+
+			ImGui::SliderInt("Delay between msgs##sliderInstantMessageDelayTimes", &S.gameTab.instantMessageDelayTimes, 0, 10000, "%d ms");
+
+			ImGui::Columns(1);
+
 			ImGui::Columns(3, 0, false);
 
 			ImGui::Checkbox("Instalock", &S.gameTab.instalockEnabled);
@@ -398,6 +483,15 @@ public:
 				}
 			}
 
+			ImGui::Columns(2, 0, false);
+
+			ImGui::Checkbox("Auto ban", &S.gameTab.autoBanEnabled);
+			ImGui::NextColumn();
+
+			ImGui::SliderInt("Delay##sliderautoBanDelay", &S.gameTab.autoBanDelay, 0, 10000, "%d ms");
+
+			ImGui::Columns(1);
+
 			static std::string chosenAutoban = "Auto ban\t\t\t\tChosen: " + Misc::ChampIdToName(S.gameTab.autoBanId) + "###AnimatedAutoban";
 			static int lastAutoban = 0;
 			if ((lastAutoban != S.gameTab.autoBanId) && !isStillDownloading)
@@ -455,6 +549,41 @@ public:
 			}
 			ImGui::SameLine();
 			Misc::HelpMarker("Works only when you don't have enough RP for boost");*/
+
+			ImGui::Separator();
+			ImGui::Text("Champs:");
+			if (ImGui::Button("Refund last purchased champion"))
+			{
+				Json::CharReaderBuilder builder;
+				const std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+				JSONCPP_STRING err;
+				Json::Value rootLocale;
+				Json::Value rootSession;
+				Json::Value rootPurchaseHistory;
+
+				std::string regionLocale = http->Request("GET", "https://127.0.0.1/riotclient/get_region_locale", "", auth->leagueHeader, "", "", auth->leaguePort);
+				if (reader->parse(regionLocale.c_str(), regionLocale.c_str() + static_cast<int>(regionLocale.length()), &rootLocale, &err))
+				{
+					std::string region = Utils::WstringToString(Utils::StringToWstring(rootLocale["webRegion"].asString()));
+					std::string session = http->Request("GET", "https://127.0.0.1/lol-login/v1/session", "", auth->leagueHeader, "", "", auth->leaguePort);
+					if (reader->parse(session.c_str(), session.c_str() + static_cast<int>(session.length()), &rootSession, &err))
+					{
+						std::string accountId = rootSession["accountId"].asString();
+						std::string idToken = rootSession["idToken"].asString();
+						std::string authorizationHeader = "Authorization: Bearer " + idToken + "\r\n" +
+							"Accept: application/json" + "\r\n" +
+							"Content-Type: application/json" + "\r\n";
+						std::string purchaseHistory = http->Request("GET", "https://" + region + ".store.leagueoflegends.com/storefront/v3/history/purchase", "", authorizationHeader, "", "");
+						if (reader->parse(purchaseHistory.c_str(), purchaseHistory.c_str() + static_cast<int>(purchaseHistory.length()), &rootPurchaseHistory, &err))
+						{
+							std::string transactionId = rootPurchaseHistory["transactions"][0]["transactionId"].asString();
+							result = http->Request("POST", "https://" + region + ".store.leagueoflegends.com/storefront/v3/refund", "{\"accountId\":" + accountId + ",\"transactionId\":\"" + transactionId + "\",\"inventoryType\":\"CHAMPION\",\"language\":\"EN_US\"}", authorizationHeader, "", "");
+						}
+					}
+				}
+			}
+			ImGui::SameLine();
+			ImGui::HelpMarker("Buy a champion, pick it during a game and click this button before the game ends, no refund token will be used to refund it");
 
 			static Json::StreamWriterBuilder wBuilder;
 			static std::string sResultJson;
@@ -534,6 +663,14 @@ public:
 					while (error.find("errorCode") != std::string::npos)
 					{
 						error = http->Request("POST", request, R"({"type":"chat", "body":")" + std::string(S.gameTab.instantMessage) + R"("})", auth->leagueHeader, "", "", auth->leaguePort);
+						if (S.gameTab.instantMessageTimes > 1)
+						{
+							for (int time = 0; time < S.gameTab.instantMessageTimes - 1; time++)
+							{
+								std::this_thread::sleep_for(std::chrono::milliseconds(S.gameTab.instantMessageDelayTimes));
+								error = http->Request("POST", request, R"({"type":"chat", "body":")" + std::string(S.gameTab.instantMessage) + R"("})", auth->leagueHeader, "", "", auth->leaguePort);
+							}
+						}
 						std::this_thread::sleep_for(std::chrono::milliseconds(1));
 					}
 					break;
@@ -675,10 +812,12 @@ public:
 																		//	break;
 																		//}
 																	}
-																	else if (actionType == "ban" && S.gameTab.autoBanId)
+																	else if (actionType == "ban" && S.gameTab.autoBanId && S.gameTab.autoBanEnabled)
 																	{
 																		if (actions[i]["completed"].asBool() == false)
 																		{
+																			std::this_thread::sleep_for(std::chrono::milliseconds(S.gameTab.autoBanDelay));
+
 																			http->Request("PATCH", "https://127.0.0.1/lol-champ-select/v1/session/actions/" + actions[i]["id"].asString(),
 																				R"({"completed":true,"championId":)" + std::to_string(S.gameTab.autoBanId) + "}", auth->leagueHeader, "", "", auth->leaguePort);
 																		}

@@ -55,13 +55,19 @@ struct Settings
 
 	struct
 	{
+		int firstRole = 0;
+		int secondRole = 0;
 		bool autoAcceptEnabled = false;
 		bool instalockEnabled = false;
+		bool autoBanEnabled = false;
 		int instalockId = 0;
 		int instalockDelay = 0;
 		std::string instantMessage;
 		int instantMessageDelay = 0;
+		int instantMessageTimes = 1;
+		int instantMessageDelayTimes = 0;
 		int autoBanId = 0;
+		int autoBanDelay = 0;
 		bool dodgeOnBan = false;
 		int backupId = 0;
 	}gameTab;
@@ -108,13 +114,19 @@ public:
 				root["invokeTab"]["destination"] = S.invokeTab.destination;
 				root["invokeTab"]["method"] = S.invokeTab.method;
 				root["invokeTab"]["args"] = S.invokeTab.args;
+				root["gameTab"]["firstRole"] = S.gameTab.firstRole;
+				root["gameTab"]["secondRole"] = S.gameTab.secondRole;
 				root["gameTab"]["autoAcceptEnabled"] = S.gameTab.autoAcceptEnabled;
 				root["gameTab"]["instalockEnabled"] = S.gameTab.instalockEnabled;
+				root["gameTab"]["autoBanEnabled"] = S.gameTab.autoBanEnabled;
 				root["gameTab"]["instalockDelay"] = S.gameTab.instalockDelay;
 				root["gameTab"]["instalockId"] = S.gameTab.instalockId;
 				root["gameTab"]["instantMessage"] = S.gameTab.instantMessage;
 				root["gameTab"]["instantMessageDelay"] = S.gameTab.instantMessageDelay;
+				root["gameTab"]["instantMessageTimes"] = S.gameTab.instantMessageTimes;
+				root["gameTab"]["instantMessageDelayTimes"] = S.gameTab.instantMessageDelayTimes;
 				root["gameTab"]["autoBanId"] = S.gameTab.autoBanId;
+				root["gameTab"]["autoBanDelay"] = S.gameTab.autoBanDelay;
 				root["gameTab"]["dodgeOnBan"] = S.gameTab.dodgeOnBan;
 				root["gameTab"]["backupId"] = S.gameTab.backupId;
 
@@ -170,13 +182,19 @@ public:
 				if (auto t = root["invokeTab"]["destination"]; !t.empty()) S.invokeTab.destination = t.asString();
 				if (auto t = root["invokeTab"]["method"]; !t.empty()) S.invokeTab.method = t.asString();
 				if (auto t = root["invokeTab"]["args"]; !t.empty()) S.invokeTab.args = t.asString();
+				if (auto t = root["gameTab"]["firstRole"]; !t.empty()) S.gameTab.firstRole = t.asInt();
+				if (auto t = root["gameTab"]["secondRole"]; !t.empty()) S.gameTab.secondRole = t.asInt();
 				if (auto t = root["gameTab"]["autoAcceptEnabled"]; !t.empty()) S.gameTab.autoAcceptEnabled = t.asBool();
 				if (auto t = root["gameTab"]["instalockEnabled"]; !t.empty()) S.gameTab.instalockEnabled = t.asBool();
+				if (auto t = root["gameTab"]["autoBanEnabled"]; !t.empty()) S.gameTab.autoBanEnabled = t.asBool();
 				if (auto t = root["gameTab"]["instalockDelay"]; !t.empty()) S.gameTab.instalockDelay = t.asInt();
 				if (auto t = root["gameTab"]["instalockId"]; !t.empty()) S.gameTab.instalockId = t.asInt();
 				if (auto t = root["gameTab"]["instantMessage"]; !t.empty()) S.gameTab.instantMessage = t.asString();
 				if (auto t = root["gameTab"]["instantMessageDelay"]; !t.empty()) S.gameTab.instantMessageDelay = t.asInt();
+				if (auto t = root["gameTab"]["instantMessageTimes"]; !t.empty()) S.gameTab.instantMessageTimes = t.asInt();
+				if (auto t = root["gameTab"]["instantMessageDelayTimes"]; !t.empty()) S.gameTab.instantMessageDelayTimes = t.asInt();
 				if (auto t = root["gameTab"]["autoBanId"]; !t.empty()) S.gameTab.autoBanId = t.asInt();
+				if (auto t = root["gameTab"]["autoBanDelay"]; !t.empty()) S.gameTab.autoBanDelay = t.asInt();
 				if (auto t = root["gameTab"]["dodgeOnBan"]; !t.empty()) S.gameTab.dodgeOnBan = t.asBool();
 				if (auto t = root["gameTab"]["backupId"]; !t.empty()) S.gameTab.backupId = t.asInt();
 
